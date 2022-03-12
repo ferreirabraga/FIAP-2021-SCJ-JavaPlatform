@@ -73,6 +73,10 @@ public class TratarRespostas implements Resposta{
                     setResposta("Olá "+texto+", temos muitas opção de serviços. Escolha um:");
                     addInteracaoInicial();
                     break;
+                case "resp10":
+                    setResposta("Olá "+texto+", temos muitas opção de serviços. Escolha um:");
+                    addInteracaoInicial();
+                    break;
                 default:
                     break;
             }
@@ -80,8 +84,8 @@ public class TratarRespostas implements Resposta{
             InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
                 new InlineKeyboardButton[]{
                         // new InlineKeyboardButton("Opção 1").url("www.google.com"),
-                        new InlineKeyboardButton("Opção 1").callbackData("resp1"),
-                        new InlineKeyboardButton("Opção 2").callbackData("resp2"),
+                        new InlineKeyboardButton("chuck Norris").callbackData("chucknorris"),
+                        new InlineKeyboardButton("Conselhos").callbackData("adviceslip"),
                         new InlineKeyboardButton("Opção 3").callbackData("resp3")
                         // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
                 });

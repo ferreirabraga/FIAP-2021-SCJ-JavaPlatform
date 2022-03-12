@@ -82,8 +82,16 @@ public class Main {
 					// Envio de "Escrevendo" antes de enviar a resposta.
 					baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
 
-					//retorna uma resposta para o chat
-					sendResponse = bot.execute(new SendMessage(update.message().chat().id(), tratarRespostas.getResposta()));
+					if(null != tratarRespostas.getsendMessageResposta()){
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
+					}else if(null != tratarRespostas.getResposta()){
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(new SendMessage(update.message().chat().id(), tratarRespostas.getResposta()));	
+					}else{
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(new SendMessage(update.message().chat().id(), "huuummm...não entendi"));
+					}
 
 				}else{
 
@@ -98,8 +106,16 @@ public class Main {
 					//a interação atual será a ultima na proxima interação
 					ultimaInteracao = update.callbackQuery().data();
 
-					//retorna uma resposta para o chat
-					sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
+					if(null != tratarRespostas.getsendMessageResposta()){
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
+					}else if(null != tratarRespostas.getResposta()){
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), tratarRespostas.getResposta()));	
+					}else{
+						//retorna uma resposta para o chat
+						sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), "huuummm...não entendi"));
+					}
 				}
 
 				// Verificacao de acao de chat foi enviada com sucesso.
