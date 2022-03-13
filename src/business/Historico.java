@@ -80,7 +80,10 @@ public class Historico {
 
 	public void setHistorico(String textoEnviadoPeloUsuario) {
 		this.prop.put(LocalDate.now(), textoEnviadoPeloUsuario);
-		
+	}
+	
+	public String getProperty(String propertiesName) {
+		return prop.getProperty(propertiesName);
 	}
 	 
 	

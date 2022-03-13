@@ -10,7 +10,6 @@ Bot Telegram criado com o objetivo acadêmia que faz parte do trabalho relaciona
 
 * [Configuração](#configuração)
 
-
 ---
 
 ### Configuração

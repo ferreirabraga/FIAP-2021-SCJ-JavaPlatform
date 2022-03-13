@@ -10,7 +10,7 @@ import java.util.Arrays;
 import enums.MethodEnum;
 
 public class API {
-
+	
 	
 	/**
 	 * Metodo usado para requisitar APIs externas
@@ -31,13 +31,12 @@ public class API {
         if(null != dados)
         	payload = dados;
 
-        HttpURLConnection linec = (HttpURLConnection) line_api_url
-                .openConnection();
+        HttpURLConnection linec = (HttpURLConnection) line_api_url.openConnection();
         linec.setDoInput(true);
         linec.setDoOutput(true);
         linec.setRequestMethod(metodo.name());
         linec.setRequestProperty("Content-Type", "application/json");
-        linec.setRequestProperty("Authorization", "Bearer "+ "1djCb/mXV+KtryMxr6i1bXw");
+//        linec.setRequestProperty("Authorization", "Bearer "+ "1djCb/mXV+KtryMxr6i1bXw");
 
         //envia parametros somente se foi passado no métodos
         if(null !=payload) {
@@ -47,11 +46,14 @@ public class API {
         //pega os dados 
         BufferedReader in = new BufferedReader(new InputStreamReader(linec.getInputStream()));
         //cria objeto
-        StringBuffer inputLine = new StringBuffer();
+        StringBuffer inputLineSB = new StringBuffer();
+        String inputLine="";
         //carrega todos os dados
-        while ((inputLine.append(in.readLine())) != null);
+        while ((inputLine = in.readLine()) != null)
+        	inputLineSB.append(in.readLine());
+
         in.close();
         //retorna tudo com String
-        return inputLine.toString();
+        return inputLineSB.toString();
     } 
 }

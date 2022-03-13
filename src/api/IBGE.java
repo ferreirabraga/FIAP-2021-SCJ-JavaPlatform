@@ -1,17 +1,13 @@
 package api;
 
-import java.lang.reflect.Method;
-
-import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.annotations.JsonAdapter;
 
 import enums.MethodEnum;
-import modelos.InfoNomes;
 
 public class IBGE extends API{
 
-	private final String URL_NOME = "https://servicodados.ibge.gov.br/api/v2/censos/nomes/";
+	public final String URL_NOME = "https://servicodados.ibge.gov.br/api/v2/censos/nomes/";
 	private String nome;
 	
 	public String getNome() {
@@ -26,9 +22,12 @@ public class IBGE extends API{
 		try {
 			resposta = callAPIExternas(URL_NOME, MethodEnum.POST, nome);
 			String json = "";
-			//TODO:
-			//fazer o tratamento de String para json
-			return resposta.length() > 0;
+			JsonObject jObject  = new JsonObject(); // json
+			JsonObject data = jObject.getAsJsonObject(resposta); // get data object
+			JsonElement atributo = data.get("name"); // 
+			return atributo.getAsString().length() > 0;
+
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
