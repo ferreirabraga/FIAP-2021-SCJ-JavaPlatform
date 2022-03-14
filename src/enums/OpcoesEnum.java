@@ -4,7 +4,7 @@ public enum OpcoesEnum {
 
 	//https://nomics.com/docs/#section/SDKs-and-Libraries/Community-Submissions-(Not-supported-by-Nomics)
     CRIPTO ("CRIPTO"),
-    CHUCH ("CHUCH NORIS"),
+    CHUCH ("CHUCH"),
     CLIMA ("CLIMA ");
 	
     OpcoesEnum (String opcao) {

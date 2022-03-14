@@ -2,12 +2,16 @@ package telegram_bot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
 import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup;
 import com.pengrad.telegrambot.request.SendMessage;
 
+import api.Chuch;
+import api.Cripto;
 import api.IBGE;
 import business.Historico;
 import business.Resposta;
@@ -68,9 +72,12 @@ public class TratarRespostas implements Resposta{
                 case "/start":
                 	Historico propHistorico = new Historico(this.chatID);
                 	if(null != propHistorico.getProperty("nome")) {
-        				String.format("Olá %s como vai, tudo bem?", propHistorico.getProperty("nome"));
+        				setResposta(String.format("Olá %s como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
+        				addInteracaoInicial();
+        			}else {
+        				setResposta("Olá como vai, tudo bem? Como se chama?");
         			}
-                    setResposta("Olá como vai, tudo bem? Como se chama?");
+                    
                     break;
             
                 default:
@@ -115,29 +122,62 @@ public class TratarRespostas implements Resposta{
                     setResposta(String.format("Olá você escolheu a opção %s, temos muitas opção de serviços. Escolha um:", texto));
                     addInteracaoInicial();
                     break;
+                case "CRIPTO":
+                    addInteracaoCripto();
+                    break;
+                case "CHUCK":
+                	addInteracaoChuch();
+                    break;
                 default:
-					try {
-						if(nomeJaCadastrado.trim().length() > 0) {
-							setResposta(String.format("Olá %s como vai tudo bem?  ",nomeJaCadastrado));		
-						} else {
-							IBGE ibge = new IBGE();
-							String isNomeComum = ibge.callAPIExternas(ibge.URL_NOME, MethodEnum.POST, texto);
-							if(isNomeComum.trim().length() > 0 ) {
-								propHistorico.setProperty("nome", texto);
-								setResposta(String.format("Olá %s como vai tudo bem? Escolha uma das opções abaixo:", texto));
+                	if(ultimaInteracao.equals(OpcoesEnum.CRIPTO.getOpcao())) {
+                		Cripto cripto = new Cripto();
+                		List<String> moedas = new ArrayList<String>() {
+                            {
+                                add(texto);
+                            }
+                        };
+                        setResposta(String.format("O cotação da cripto %s hoje é de %s ",texto, cripto.getPrecoAgora(moedas)));
+                	}else if(ultimaInteracao.equals(OpcoesEnum.CHUCH.getOpcao())) {
+                    	Chuch chuch = new Chuch();
+                    	setResposta(chuch.callAPI());
+                	}else {
+						try {
+							if(nomeJaCadastrado.trim().length() > 0) {
+								setResposta(String.format("Olá %s como vai tudo bem?  ",nomeJaCadastrado));
+								addInteracaoInicial();
+							} else {
+								;
+								IBGE ibge = new IBGE();
+								String isNomeComum = ibge.isNomeComum(texto);
+								if(!isNomeComum.contains("[]")) {
+									propHistorico.setProperty("nome", texto);
+									setResposta(String.format("Olá %s como vai tudo bem? Escolha uma das opções abaixo:", texto));
+									addInteracaoInicial();
+								}
 							}
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					if(getResposta().length() > 0)
-						setResposta("Olá como vai tudo bem? Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+						if(getResposta().length() == 0)
+							setResposta("Olá como vai tudo bem? Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+                	}
             }
+            historico.save(this.chatID);
         }else{
             primeirasOpcoes(texto);
         }
     }
+
+	private String buscaPrincipaisCripto() {
+		Cripto cripto = new Cripto();
+		List<String> moedas = new ArrayList();
+		moedas.add("BTC");
+		String precos = cripto.getPrecoAgora(moedas);
+		return precos;
+	}
+	
+	
 
 	private void primeirasOpcoes(String texto) {
 		InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
@@ -175,5 +215,37 @@ public class TratarRespostas implements Resposta{
                         // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
                 });
        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
+    }
+    
+    /**
+     * Utilizado para primeira interação com o usuario após clicar na opção CRIPTO
+     */
+    private void addInteracaoCripto(){
+    	String preco = buscaPrincipaisCripto();
+    	setResposta("Digite a sigla da moeda que deseja ver o preço, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue último do BTC/BRL: "+preco );
+    }
+    
+    /**
+     * Trata nome composto para verificação no IBGE
+     * @param nome
+     * @return
+     */
+    private String trataNomeComposto(String nome) {
+
+		//trata nome composto
+		if(nome.indexOf(" ") > 0) {
+			//caso tenham mais de 1 nome pega somente o primeiro
+			return (nome.split(" "))[0];
+		}
+		return nome;
+
+    }
+    /**
+     * Utilizado para primeira interação com o usuario após clicar na opção Chuck Norris
+     */
+    private void addInteracaoChuch(){
+    	Chuch chuch = new Chuch();
+    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Se sim digite 'Chuck' caso contrário digite o comando /start. \nUma degustação:"+chuch.callAPI());
+    	
     }
 }

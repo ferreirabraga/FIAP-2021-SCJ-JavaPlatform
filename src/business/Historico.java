@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.Properties;
 import java.util.Set;
@@ -12,8 +13,6 @@ import enums.SOEnum;
 
 public class Historico {
 	
-	
-
 	Properties prop = new Properties();
 	private final String  EXTENSAO = ".properties";
 	
@@ -79,11 +78,32 @@ public class Historico {
 	 }
 
 	public void setHistorico(String textoEnviadoPeloUsuario) {
-		this.prop.put(LocalDate.now(), textoEnviadoPeloUsuario);
+		this.prop.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
 	}
 	
 	public String getProperty(String propertiesName) {
 		return prop.getProperty(propertiesName);
+	}
+	
+	public void save(Object idChat) {
+		
+		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(getSO()).getSOPath()+idChat+EXTENSAO)) {
+
+//            Properties prop = new Properties();
+//            
+//            // set the properties value
+//            prop.setProperty("db.url", "localhost");
+//            prop.setProperty("db.user", "mkyong");
+//            prop.setProperty("db.password", "password");
+
+            // save properties to project root folder
+            prop.store(output, null);
+
+//            System.out.println(prop);
+
+        } catch (IOException io) {
+            io.printStackTrace();
+        }
 	}
 	 
 	

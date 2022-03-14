@@ -1,11 +1,6 @@
 package telegram_bot;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
-import java.util.Set;
 
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.Update;
@@ -17,6 +12,9 @@ import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetUpdatesResponse;
 import com.pengrad.telegrambot.response.SendResponse;
 
+import enums.PropertiesEnum;
+import util.Propriedades;
+
 public class Main {
 
 	//armazena o ultimo texto enviado pelo usuario
@@ -25,17 +23,8 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
-		Properties prop = null;
-
-		try{
-			prop = readPropertiesFile("token.properties");
-		}catch(IOException io){
-			System.err.println("Algo deu errado.");
-			System.err.println(io.getMessage());
-		}
-
 		// Criacao do objeto bot com as informacoes de acesso.
-		TelegramBot bot = new TelegramBot(prop.getProperty("myToken"));
+		TelegramBot bot = new TelegramBot(Propriedades.getValue(PropertiesEnum.TELEGRAM));
 
 		// Objeto responsavel por receber as mensagens.
 		GetUpdatesResponse updatesResponse;
@@ -67,54 +56,11 @@ public class Main {
 					m = update.updateId() + 1;
 					if(null != update.message()){
 	
-						//contrutor com o texto enviado pelo usuario e o id da mensagem
-						tratarRespostas = new TratarRespostas(update.message().text(), update.message().chat().id());
-						//log
-						System.out.println("Recebendo mensagem: " + update.message().text());
-						
-						//Ja tem a informação carregada, verifica o que foi a ultima interação
-						tratarRespostas.escuta(ultimaInteracao);
-						
-						//a interação atual será a ultima na proxima interação
-						ultimaInteracao = update.message().text();
-						
-						// Envio de "Escrevendo" antes de enviar a resposta.
-						baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
-	
-						if(null != tratarRespostas.getsendMessageResposta()){
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
-						}else if(null != tratarRespostas.getResposta()){
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(new SendMessage(update.message().chat().id(), tratarRespostas.getResposta()));	
-						}else{
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(new SendMessage(update.message().chat().id(), "huuummm...não entendi"));
-						}
+						baseResponse = tratarRespostaAberta(bot, update);
 	
 					}else{
 	
-						// Envio de "Escrevendo" antes de enviar a resposta.
-						baseResponse = bot.execute(new SendChatAction(update.callbackQuery().message().chat().id(), ChatAction.typing.name()));
-	
-						//contrutor com o texto enviado pelo usuario e o id da mensagem
-						tratarRespostas = new TratarRespostas(update.callbackQuery().data(), update.callbackQuery().message().chat().id());
-						//
-						tratarRespostas.escutaCallBack(ultimaInteracao);
-											
-						//a interação atual será a ultima na proxima interação
-						ultimaInteracao = update.callbackQuery().data();
-	
-						if(null != tratarRespostas.getsendMessageResposta()){
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
-						}else if(null != tratarRespostas.getResposta()){
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), tratarRespostas.getResposta()));	
-						}else{
-							//retorna uma resposta para o chat
-							sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), "huuummm...não entendi"));
-						}
+						baseResponse = trataRespostaOpcao(bot, update);
 					}
 	
 					// Verificacao de acao de chat foi enviada com sucesso.
@@ -125,21 +71,77 @@ public class Main {
 		}
 	}
 
-	public static Properties readPropertiesFile(String fileName) throws IOException {
-		FileInputStream fis = null;
-		Properties prop = null;
-		try {
-		   fis = new FileInputStream(fileName);
-		   prop = new Properties();
-		   prop.load(fis);
-		} catch(FileNotFoundException fnfe) {
-			System.err.println("Arquivo não encontrado.");
-		   fnfe.printStackTrace();
-		} catch(IOException ioe) {
-		   ioe.printStackTrace();
-		} finally {
-		   fis.close();
+	/**
+	 * Utilizado quando uma reposta foi digitada pelo usuário
+	 * @param bot
+	 * @param update
+	 * @return
+	 */
+	private static BaseResponse tratarRespostaAberta(TelegramBot bot, Update update) {
+		SendResponse sendResponse;
+		BaseResponse baseResponse;
+		TratarRespostas tratarRespostas;
+		//contrutor com o texto enviado pelo usuario e o id da mensagem
+		tratarRespostas = new TratarRespostas(update.message().text(), update.message().chat().id());
+		//log
+		System.out.println("Recebendo mensagem: " + update.message().text());
+		
+		//Ja tem a informação carregada, verifica o que foi a ultima interação
+		tratarRespostas.escuta(ultimaInteracao);
+		
+		//a interação atual será a ultima na proxima interação
+		ultimaInteracao = update.message().text();
+		
+		// Envio de "Escrevendo" antes de enviar a resposta.
+		baseResponse = bot.execute(new SendChatAction(update.message().chat().id(), ChatAction.typing.name()));
+
+		if(null != tratarRespostas.getsendMessageResposta()){
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
+		}else if(null != tratarRespostas.getResposta()){
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(new SendMessage(update.message().chat().id(), tratarRespostas.getResposta()));	
+		}else{
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(new SendMessage(update.message().chat().id(), "huuummm...não entendi"));
 		}
-		return prop;
-	 }
+		return baseResponse;
+	}
+
+
+	/**
+	 * Utilizada quando o usuário clicou em uma opção de algum menu
+	 * @param bot
+	 * @param update
+	 * @return
+	 */
+	private static BaseResponse trataRespostaOpcao(TelegramBot bot, Update update) {
+		SendResponse sendResponse;
+		BaseResponse baseResponse;
+		TratarRespostas tratarRespostas;
+		// Envio de "Escrevendo" antes de enviar a resposta.
+		baseResponse = bot.execute(new SendChatAction(update.callbackQuery().message().chat().id(), ChatAction.typing.name()));
+
+		//contrutor com o texto enviado pelo usuario e o id da mensagem
+		tratarRespostas = new TratarRespostas(update.callbackQuery().data(), update.callbackQuery().message().chat().id());
+		//
+		tratarRespostas.escutaCallBack(ultimaInteracao);
+							
+		//a interação atual será a ultima na proxima interação
+		ultimaInteracao = update.callbackQuery().data();
+
+		if(null != tratarRespostas.getsendMessageResposta()){
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(tratarRespostas.getsendMessageResposta());
+		}else if(null != tratarRespostas.getResposta()){
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), tratarRespostas.getResposta()));	
+		}else{
+			//retorna uma resposta para o chat
+			sendResponse = bot.execute(new SendMessage(update.callbackQuery().message().chat().id(), "huuummm...não entendi"));
+		}
+		return baseResponse;
+	}
+
+	
 }

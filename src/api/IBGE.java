@@ -17,22 +17,22 @@ public class IBGE extends API{
 		this.nome = nome;
 	}
 	
-	public boolean isNomeComum(String nome) {
+	public String isNomeComum(String nome) {
 		String resposta;
 		try {
-			resposta = callAPIExternas(URL_NOME, MethodEnum.POST, nome);
+			resposta = callAPIExternas(URL_NOME+nome, MethodEnum.POST, null);
 			String json = "";
 			JsonObject jObject  = new JsonObject(); // json
 			JsonObject data = jObject.getAsJsonObject(resposta); // get data object
 			JsonElement atributo = data.get("name"); // 
-			return atributo.getAsString().length() > 0;
+			return atributo.getAsString();
 
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
+		return "";
 	}
 	
 }
