@@ -85,9 +85,9 @@ public class Historico {
 		return prop.getProperty(propertiesName);
 	}
 	
-	public void save(Object idChat) {
-		
-		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(getSO()).getSOPath()+idChat+EXTENSAO)) {
+//	public void save(Object idChat) {
+	public void save(Properties prop) {
+		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(getSO()).getSOPath()+prop.getProperty("id")+EXTENSAO)) {
 
 //            Properties prop = new Properties();
 //            

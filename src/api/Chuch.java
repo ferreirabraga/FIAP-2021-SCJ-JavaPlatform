@@ -1,10 +1,7 @@
 package api;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
-import business.Historico;
 import enums.MethodEnum;
 import enums.PropertiesEnum;
 import okhttp3.MediaType;

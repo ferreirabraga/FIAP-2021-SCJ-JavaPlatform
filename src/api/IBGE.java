@@ -18,15 +18,21 @@ public class IBGE extends API{
 	}
 	
 	public String isNomeComum(String nome) {
-		String resposta;
-		try {
-			resposta = callAPIExternas(URL_NOME+nome, MethodEnum.POST, null);
-			String json = "";
-			JsonObject jObject  = new JsonObject(); // json
-			JsonObject data = jObject.getAsJsonObject(resposta); // get data object
-			JsonElement atributo = data.get("name"); // 
-			return atributo.getAsString();
 
+		try {
+			String json = callAPIExternas(URL_NOME+nome, MethodEnum.POST, null);
+
+			//TODO: Ajustar codigo para pegar transformar em Object
+//			Gson gson = new Gson();
+//			String json = gson.toJson(obj);
+			//gato para acelerar o desenvolvimento
+			String[] dadosJson  =json.split(",");
+			for (String dado : dadosJson) {
+				if(dado.contains("\"nome\"")) {
+					System.out.println(dado);
+					return dado.substring(dado.indexOf(":")+2,dado.length()-1);
+				}
+			}
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

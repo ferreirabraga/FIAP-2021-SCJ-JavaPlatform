@@ -8,5 +8,6 @@ public class ClimaTempo {
 	//retorna os IDS da cidades
 	//https://apiadvisor.climatempo.com.br/api/v1/locale/city?name=S%C3%A3o%20Paulo&token=f8a5a6b7c1a8be05f47c03616925df49
 	
+	 
 	
 }

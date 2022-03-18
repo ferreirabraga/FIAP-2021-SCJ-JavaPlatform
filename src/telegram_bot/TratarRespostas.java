@@ -1,7 +1,11 @@
 package telegram_bot;
 
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -13,10 +17,13 @@ import com.pengrad.telegrambot.request.SendMessage;
 import api.Chuch;
 import api.Cripto;
 import api.IBGE;
+import api.OpenWeatherAPI;
+import modelos.OpenWeather;
 import business.Historico;
 import business.Resposta;
 import enums.MethodEnum;
 import enums.OpcoesEnum;
+import modelos.Weather;
 import util.Constantes;
 
 public class TratarRespostas implements Resposta{
@@ -36,12 +43,26 @@ public class TratarRespostas implements Resposta{
     public SendMessage getsendMessageResposta(){
         return this.sendMessageResposta;
     }
+    
+    
+    public String getPeriodo() {
+    	LocalTime time = LocalTime.now();
+    	if(time.getHour() < 12 ) {
+    		return "bom dia";
+    	}else if (time.getHour() >= 12 && time.getHour() < 18) {
+        	return "boa tarde";
+	    }else {
+	    	return "boa noite";
+		}
+}
 
-    public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID){
+
+	public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID){
         this.chatID = chatID;
         this.textoEnviadoPeloUsuario = textoEnviadoPeloUsuario;
        	historico = new Historico(chatID);
        	historico.setHistorico(textoEnviadoPeloUsuario);
+       	getPeriodo();
     }
 
     public String getResposta() {
@@ -72,10 +93,10 @@ public class TratarRespostas implements Resposta{
                 case "/start":
                 	Historico propHistorico = new Historico(this.chatID);
                 	if(null != propHistorico.getProperty("nome")) {
-        				setResposta(String.format("Olá %s como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
+        				setResposta(String.format("Olá %s, "+getPeriodo()+" como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
         				addInteracaoInicial();
         			}else {
-        				setResposta("Olá como vai, tudo bem? Como se chama?");
+        				setResposta("Olá "+getPeriodo()+"como vai, tudo bem? Como se chama?");
         			}
                     
                     break;
@@ -100,6 +121,9 @@ public class TratarRespostas implements Resposta{
 		
 		try {
 			propHistorico = historico.readPropertiesFile(chatID.toString());
+			if(null == propHistorico.getProperty("id")) {
+				propHistorico.setProperty("id",chatID.toString());
+			}
 			if(null != propHistorico.getProperty("nome")) {
 				nomeJaCadastrado = propHistorico.getProperty("nome");
 			}
@@ -112,7 +136,7 @@ public class TratarRespostas implements Resposta{
 		}
 		
     	
-    	if(ultimaInteracao != null){
+//    	if(ultimaInteracao != null){
             switch (texto) {
                 case "/start":
                     setResposta("Olá "+texto+", temos muitas opção de serviços. Escolha um:");
@@ -128,6 +152,9 @@ public class TratarRespostas implements Resposta{
                 case "CHUCK":
                 	addInteracaoChuch();
                     break;
+                case "OPEN_WEATHER":
+                	addInteracaoWeather();
+                    break;
                 default:
                 	if(ultimaInteracao.equals(OpcoesEnum.CRIPTO.getOpcao())) {
                 		Cripto cripto = new Cripto();
@@ -137,37 +164,71 @@ public class TratarRespostas implements Resposta{
                             }
                         };
                         setResposta(String.format("O cotação da cripto %s hoje é de %s ",texto, cripto.getPrecoAgora(moedas)));
-                	}else if(ultimaInteracao.equals(OpcoesEnum.CHUCH.getOpcao())) {
+                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao()) && texto.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao())) {
                     	Chuch chuch = new Chuch();
                     	setResposta(chuch.callAPI());
+                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.OPEN_WEATHER.getOpcao())) {
+                		OpenWeatherAPI weather = new OpenWeatherAPI();
+                		//texto seria o nome da cidade
+                		OpenWeather ow = weather.callAPI(texto);
+                		if(null == ow) {
+                			setResposta("Essa cidade eu não conheço, você digitou o nome corretamente?");
+                		}else {
+                			List<Weather> weatherList = ow.getWeather();
+                			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", texto, weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C"));
+                			addInteracaoInicial();
+                		}
                 	}else {
-						try {
-							if(nomeJaCadastrado.trim().length() > 0) {
-								setResposta(String.format("Olá %s como vai tudo bem?  ",nomeJaCadastrado));
-								addInteracaoInicial();
-							} else {
-								;
-								IBGE ibge = new IBGE();
-								String isNomeComum = ibge.isNomeComum(texto);
-								if(!isNomeComum.contains("[]")) {
-									propHistorico.setProperty("nome", texto);
-									setResposta(String.format("Olá %s como vai tudo bem? Escolha uma das opções abaixo:", texto));
-									addInteracaoInicial();
-								}
+                		List<String> despedidas = new ArrayList<String>();
+                		despedidas.add("tchau");
+                		despedidas.add("até mais");
+                		despedidas.add("até logo");
+                		despedidas.add("obrigado");
+                		
+                		for (String despedida : despedidas) {
+							if(despedida.equals(texto)) {
+								setResposta(String.format("Até mais %s", propHistorico.getProperty("nome")));
+								break;
 							}
-						} catch (Exception e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
-						if(getResposta().length() == 0)
-							setResposta("Olá como vai tudo bem? Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+                		if(getResposta().trim().length() == 0) {
+							try {
+								if(nomeJaCadastrado.trim().length() > 0) {
+									setResposta(String.format("Olá %s,"+getPeriodo()+" como vai tudo bem? Esolha uma das opções: ",nomeJaCadastrado));
+									addInteracaoInicial();
+								} else {
+									;
+									IBGE ibge = new IBGE();
+									String isNomeComum = ibge.isNomeComum(texto);
+									if(!isNomeComum.contains("[]") && !isNomeComum.equals("")) {
+										propHistorico.setProperty("nome", texto);
+										setResposta(String.format("Olá %s, "+getPeriodo()+" como vai tudo bem? Escolha uma das opções abaixo:", texto));
+										addInteracaoInicial();
+									}
+								}
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							if(getResposta().length() == 0)
+								setResposta("Olá, "+getPeriodo()+" como vai tudo bem? Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+                		}
                 	}
             }
-            historico.save(this.chatID);
-        }else{
-            primeirasOpcoes(texto);
-        }
+            historico.save(propHistorico);
+//        }else{
+//            primeirasOpcoes(texto);
+//        }
     }
+
+	private void addInteracaoWeather() {
+		setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar sair digite /start " );
+	}
+	
+//	private void addSegundaInteracaoWeather(String nomeCidade) {
+//		OpenWeather weather = new OpenWeather();
+//		weather.callAPI(nomeCidade);
+//	}
 
 	private String buscaPrincipaisCripto() {
 		Cripto cripto = new Cripto();
@@ -210,8 +271,8 @@ public class TratarRespostas implements Resposta{
                 new InlineKeyboardButton[]{
                         // new InlineKeyboardButton("Opção 1").url("www.google.com"),
                         new InlineKeyboardButton(Constantes.CRIPTO).callbackData(OpcoesEnum.CRIPTO.getOpcao()),
-                        new InlineKeyboardButton(Constantes.CHUCH).callbackData(OpcoesEnum.CHUCH.getOpcao()),
-                        new InlineKeyboardButton(Constantes.CLIMA).callbackData(OpcoesEnum.CLIMA.getOpcao())
+                        new InlineKeyboardButton(Constantes.CHUCK).callbackData(OpcoesEnum.CHUCK.getOpcao()),
+                        new InlineKeyboardButton(Constantes.OPEN_WEATHER).callbackData(OpcoesEnum.OPEN_WEATHER.getOpcao())
                         // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
                 });
        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
@@ -222,7 +283,7 @@ public class TratarRespostas implements Resposta{
      */
     private void addInteracaoCripto(){
     	String preco = buscaPrincipaisCripto();
-    	setResposta("Digite a sigla da moeda que deseja ver o preço, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue último do BTC/BRL: "+preco );
+    	setResposta("Digite a sigla da moeda que deseja ver o preço, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue última cotação do BTC/BRL: "+preco+"\nSe desejar volta sair digite /start " );
     }
     
     /**
