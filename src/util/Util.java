@@ -2,6 +2,8 @@ package util;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Properties;
+import java.util.Set;
 
 public class Util {
 
@@ -16,6 +18,20 @@ public class Util {
 	    }
 	  }
 	
+	public static String getSO() {
+		 Properties prop = System.getProperties();
+			Set<Object> keySet = prop.keySet();
+			for (Object obj : keySet) {
+				if(obj.toString().equals("os.name")) {
+					System.out.println("path:"+System.getProperty(obj.toString()));
+					if(System.getProperty(obj.toString()).toUpperCase().contains("MAC")) {
+						return "MAC";
+					}
+					return System.getProperty(obj.toString()).toUpperCase();
+				}
+			}
+			return null;
+	 }
 //	public void escreve(String texto) 
 //	  {
 //	    Path filePath = Paths.get("C:/", "temp", "test.txt");

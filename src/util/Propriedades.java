@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import enums.PropertiesEnum;
+import enums.SOEnum;
 
 public class Propriedades {
 
@@ -15,7 +16,8 @@ public class Propriedades {
 		FileInputStream fis = null;
 		Properties prop = null;
 		try {
-		   fis = new FileInputStream(fileName);
+			
+		   fis = new FileInputStream(SOEnum.valueOf(Util.getSO()).getSOPath()+fileName);
 		   prop = new Properties();
 		   prop.load(fis);
 		} catch(FileNotFoundException fnfe) {

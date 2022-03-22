@@ -7,6 +7,7 @@ public class Main {
 	private String temp_max;
 	private String pressure;
 	private String humidity;
+	
 	public String getTemp() {
 		return temp;
 	}

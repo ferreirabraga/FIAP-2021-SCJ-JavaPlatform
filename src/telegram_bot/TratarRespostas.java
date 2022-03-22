@@ -3,8 +3,6 @@ package telegram_bot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +16,10 @@ import api.Chuch;
 import api.Cripto;
 import api.IBGE;
 import api.OpenWeatherAPI;
-import modelos.OpenWeather;
 import business.Historico;
 import business.Resposta;
-import enums.MethodEnum;
 import enums.OpcoesEnum;
+import modelos.OpenWeather;
 import modelos.Weather;
 import util.Constantes;
 
@@ -57,10 +54,10 @@ public class TratarRespostas implements Resposta{
 }
 
 
-	public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID){
+	public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID, String username){
         this.chatID = chatID;
         this.textoEnviadoPeloUsuario = textoEnviadoPeloUsuario;
-       	historico = new Historico(chatID);
+       	historico = new Historico(username);
        	historico.setHistorico(textoEnviadoPeloUsuario);
        	getPeriodo();
     }
@@ -96,7 +93,7 @@ public class TratarRespostas implements Resposta{
         				setResposta(String.format("Olá %s, "+getPeriodo()+" como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
         				addInteracaoInicial();
         			}else {
-        				setResposta("Olá "+getPeriodo()+"como vai, tudo bem? Como se chama?");
+        				setResposta("Olá "+getPeriodo()+" como vai, tudo bem? Como se chama?");
         			}
                     
                     break;
@@ -139,7 +136,7 @@ public class TratarRespostas implements Resposta{
 //    	if(ultimaInteracao != null){
             switch (texto) {
                 case "/start":
-                    setResposta("Olá "+texto+", temos muitas opção de serviços. Escolha um:");
+                    setResposta("Olá "+nomeJaCadastrado+", temos muitas opção de serviços. Escolha um:");
                     addInteracaoInicial();
                     break;
                 case "nomics":
@@ -155,28 +152,37 @@ public class TratarRespostas implements Resposta{
                 case "OPEN_WEATHER":
                 	addInteracaoWeather();
                     break;
+                case "SIM_CRIPTO":
+               		addTerceiraInteracaoCripto();
+                    break;    
+                case "SIM_OPEN_WEATHER":
+                	setResposta("Digite o nome da cidade desejada?");
+//               		addSegundaInteracaoWeather();
+                    break;        
+                case "MENU":
+               		addReinteracaoInicio();
+                    break;    
                 default:
-                	if(ultimaInteracao.equals(OpcoesEnum.CRIPTO.getOpcao())) {
-                		Cripto cripto = new Cripto();
-                		List<String> moedas = new ArrayList<String>() {
-                            {
-                                add(texto);
-                            }
-                        };
-                        setResposta(String.format("O cotação da cripto %s hoje é de %s ",texto, cripto.getPrecoAgora(moedas)));
+                	if(ultimaInteracao.equals(OpcoesEnum.CRIPTO.getOpcao()) || ultimaInteracao.equals(OpcoesEnum.SIM_CRIPTO.getOpcao())) {
+
+                        this.addSegundaInteracaoCripto(texto);
+                        
                 	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao()) && texto.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao())) {
-                    	Chuch chuch = new Chuch();
-                    	setResposta(chuch.callAPI());
-                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.OPEN_WEATHER.getOpcao())) {
+                    	addSegundaInteracaoChuck();
+                    	
+                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.OPEN_WEATHER.getOpcao()) || ultimaInteracao.toUpperCase().equals(OpcoesEnum.SIM_OPEN_WEATHER.getOpcao())) {
                 		OpenWeatherAPI weather = new OpenWeatherAPI();
                 		//texto seria o nome da cidade
                 		OpenWeather ow = weather.callAPI(texto);
                 		if(null == ow) {
-                			setResposta("Essa cidade eu não conheço, você digitou o nome corretamente?");
+                			setResposta("Essa cidade eu não conheço, você digitou o nome corretamente, acredito que não. Vamos tentar novamente? \nEntre com o nome da cidade desejada");
+                			ultimaInteracao = OpcoesEnum.OPEN_WEATHER.getOpcao();
                 		}else {
                 			List<Weather> weatherList = ow.getWeather();
-                			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", texto, weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C"));
-                			addInteracaoInicial();
+                			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", texto, weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C\n"
+                					+medeTemperatura(ow.getMain().getTemp()))
+                					+"\nDeseja ver o clima de outra cidade?");
+                			addSegundaInteracaoWeather();
                 		}
                 	}else {
                 		List<String> despedidas = new ArrayList<String>();
@@ -221,14 +227,55 @@ public class TratarRespostas implements Resposta{
 //        }
     }
 
+	private String medeTemperatura(String temp) {
+		Double d = Double.parseDouble(temp);
+		int temperatura = d.intValue();
+		if(temperatura < 10) {
+			return "Eita friaaaca. Só de processar meu componentes já estão congelando";
+		}else if(temperatura >= 10 && temperatura < 20 ) {
+			return "É aconselhável um casaco, o vento certamente está gelaaaado.";
+		}else if(temperatura >= 20 && temperatura < 25 ) {
+			return "Huuum, tempinho para apreciar um bom vinho";
+		}else if(temperatura >= 25 && temperatura < 30 ) {
+			return "Oportunidade de fazer um exercício ao ar livre.";
+		}else if(temperatura >= 30 && temperatura < 35 ) {
+			return "Opa, hoje vai dar praia,mas se não tiver praia rola uma água de coco no parque.";
+		}else {
+			return "Muito cuidado com o sol e não esqueça de se hidratar";
+		}
+		
+	}
+
+	private void addReinteracaoInicio() {
+		
+		 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+	                new InlineKeyboardButton[]{
+	                        // new InlineKeyboardButton("Opção 1").url("www.google.com"),
+	                        new InlineKeyboardButton(Constantes.CRIPTO).callbackData(OpcoesEnum.CRIPTO.getOpcao()),
+	                        new InlineKeyboardButton(Constantes.CHUCK).callbackData(OpcoesEnum.CHUCK.getOpcao()),
+	                        new InlineKeyboardButton(Constantes.OPEN_WEATHER).callbackData(OpcoesEnum.OPEN_WEATHER.getOpcao())
+	                        // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
+	                });
+			sendMessageResposta = montaResposta(this.chatID, "Ok, vamos lá, deseja selecionar qual opção agora?", inlineKeyboardMarkup);
+		
+		
+	}
+
 	private void addInteracaoWeather() {
-		setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar sair digite /start " );
+		setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar volta ao menu clique aqui nesse /start " );
 	}
 	
-//	private void addSegundaInteracaoWeather(String nomeCidade) {
-//		OpenWeather weather = new OpenWeather();
-//		weather.callAPI(nomeCidade);
-//	}
+	 private void addSegundaInteracaoWeather(){
+	    	
+	    	 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+	                 new InlineKeyboardButton[]{
+	                         new InlineKeyboardButton(Constantes.SIM).callbackData(OpcoesEnum.SIM_OPEN_WEATHER.getOpcao()),
+	                         new InlineKeyboardButton(Constantes.MENU).callbackData(OpcoesEnum.MENU.getOpcao())
+	                 });
+	    	 
+	        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
+	     
+	    }
 
 	private String buscaPrincipaisCripto() {
 		Cripto cripto = new Cripto();
@@ -239,18 +286,18 @@ public class TratarRespostas implements Resposta{
 	}
 	
 	
-
-	private void primeirasOpcoes(String texto) {
-		InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
-		    new InlineKeyboardButton[]{
-		            // new InlineKeyboardButton("Opção 1").url("www.google.com"),
-		            new InlineKeyboardButton("chuck Norris").callbackData("chucknorris"),
-		            new InlineKeyboardButton("Conselhos").callbackData("adviceslip"),
-		            new InlineKeyboardButton("Opção 3").callbackData("resp3")
-		            // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
-		    });
-		sendMessageResposta = montaResposta(this.chatID, texto, inlineKeyboardMarkup);
-	}
+//
+//	private void primeirasOpcoes(String texto) {
+//		InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+//		    new InlineKeyboardButton[]{
+//		            // new InlineKeyboardButton("Opção 1").url("www.google.com"),
+//		            new InlineKeyboardButton("chuck Norris").callbackData("chucknorris"),
+//		            new InlineKeyboardButton("Conselhos").callbackData("adviceslip"),
+//		            new InlineKeyboardButton("Opção 3").callbackData("resp3")
+//		            // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
+//		    });
+//		sendMessageResposta = montaResposta(this.chatID, texto, inlineKeyboardMarkup);
+//	}
 
     @Override
     public String responde() {
@@ -286,6 +333,31 @@ public class TratarRespostas implements Resposta{
     	setResposta("Digite a sigla da moeda que deseja ver o preço, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue última cotação do BTC/BRL: "+preco+"\nSe desejar volta sair digite /start " );
     }
     
+    private void addSegundaInteracaoCripto(String texto){
+    	
+    	List<String> moedas = new ArrayList<String>() {
+            {
+                add(texto.toUpperCase());
+            }
+        };
+        
+    	Cripto cripto = new Cripto();
+    	setResposta(String.format("O cotação da cripto %s hoje é de %s .\nSe desejar outra cotação clique em SIM se quiser sair clique na opção MENU",texto, cripto.getPrecoAgora(moedas)));
+    	
+    	 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+                 new InlineKeyboardButton[]{
+                         new InlineKeyboardButton(Constantes.SIM).callbackData(OpcoesEnum.SIM_CRIPTO.getOpcao()),
+                         new InlineKeyboardButton(Constantes.MENU).callbackData(OpcoesEnum.MENU.getOpcao())
+                 });
+    	 
+        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
+     
+    }
+    
+    private void addTerceiraInteracaoCripto(){
+    	setResposta("Digite a sigla da cripto desejada." );
+    }
+    
     /**
      * Trata nome composto para verificação no IBGE
      * @param nome
@@ -305,8 +377,38 @@ public class TratarRespostas implements Resposta{
      * Utilizado para primeira interação com o usuario após clicar na opção Chuck Norris
      */
     private void addInteracaoChuch(){
+
     	Chuch chuch = new Chuch();
-    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Se sim digite 'Chuck' caso contrário digite o comando /start. \nUma degustação:"+chuch.callAPI());
+    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Veja um exemplo:\n"+chuch.callAPI()
+    	+"\nEu adoro essas mensagens, toda vez que eu respondo à vocês eu dou tanta risada que meus circuitos doem. hahahaha. Muito bom. Desejar rir mais um pouco? ");
+
+   	 	InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+        new InlineKeyboardButton[]{
+                new InlineKeyboardButton(Constantes.SIM).callbackData(OpcoesEnum.CHUCK.getOpcao().toLowerCase()),
+                new InlineKeyboardButton(Constantes.MENU).callbackData(OpcoesEnum.MENU.getOpcao())
+        });
+   	 	setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
     	
     }
+    
+	private void addSegundaInteracaoChuck(){
+    	
+		Chuch chuch = new Chuch();
+    	setResposta(chuch.callAPI()+"\nHummm, essa foi mais ou menos. hehehehehe. Mais uma risada?");
+    	
+    	 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+                 new InlineKeyboardButton[]{
+                         new InlineKeyboardButton(Constantes.SIM).callbackData(OpcoesEnum.CHUCK.getOpcao().toLowerCase()),
+                         new InlineKeyboardButton(Constantes.MENU).callbackData(OpcoesEnum.MENU.getOpcao())
+                 });
+    	 
+        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
+     
+    }
+	private void addTerceiraInteracaoChuch(){
+    	Chuch chuch = new Chuch();
+    	setResposta("Vamos dar mais risadas. Ai vai!\n "+chuch.callAPI());
+    	
+    }
+
 }

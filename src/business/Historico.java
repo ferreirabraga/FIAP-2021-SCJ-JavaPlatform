@@ -1,5 +1,6 @@
 package business;
 
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -7,20 +8,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDate;
 import java.util.Properties;
-import java.util.Set;
 
 import enums.SOEnum;
+import okhttp3.internal.Util;
 
 public class Historico {
 	
 	Properties prop = new Properties();
 	private final String  EXTENSAO = ".properties";
 	
-	public Historico(Object idChat) {
+	public Historico(Object username) {
 		try{
-			prop = readPropertiesFile(idChat.toString());
+			prop = readPropertiesFile(username.toString());
 		}catch (FileNotFoundException e) {
-			criadoArquivo(idChat.toString());
+			criadoArquivo(username.toString());
 		}
 		catch(IOException io){
 			System.err.println("Algo deu errado.");
@@ -31,7 +32,7 @@ public class Historico {
 	
 	private void criadoArquivo(String nomeArquivo) {
 		
-		String outputPath = SOEnum.valueOf(getSO()).getSOPath()+nomeArquivo+EXTENSAO;
+		String outputPath = SOEnum.valueOf(util.Util.getSO()).getSOPath()+nomeArquivo+EXTENSAO;
 	    FileOutputStream outputStrem;
 		try {
 			outputStrem = new FileOutputStream(outputPath);
@@ -50,7 +51,7 @@ public class Historico {
 		FileInputStream fis = null;
 		Properties prop = null;
 		try {
-		   fis = new FileInputStream(SOEnum.valueOf(getSO()).getSOPath()+fileName+EXTENSAO);
+		   fis = new FileInputStream(SOEnum.valueOf(util.Util.getSO()).getSOPath()+fileName+EXTENSAO);
 		   prop = new Properties();
 		   prop.load(fis);
 		} catch(FileNotFoundException fnfe) {
@@ -63,19 +64,7 @@ public class Historico {
 		return prop;
 	 }
 	
-	 private static String getSO() {
-		 Properties prop = System.getProperties();
-			Set<Object> keySet = prop.keySet();
-			for (Object obj : keySet) {
-				if(obj.toString().equals("os.name")) {
-					if(System.getProperty(obj.toString()).toUpperCase().contains("MAC")) {
-						return "MAC";
-					}
-					return System.getProperty(obj.toString()).toUpperCase();
-				}
-			}
-			return null;
-	 }
+	 
 
 	public void setHistorico(String textoEnviadoPeloUsuario) {
 		this.prop.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
@@ -87,7 +76,7 @@ public class Historico {
 	
 //	public void save(Object idChat) {
 	public void save(Properties prop) {
-		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(getSO()).getSOPath()+prop.getProperty("id")+EXTENSAO)) {
+		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(util.Util.getSO()).getSOPath()+prop.getProperty("id")+EXTENSAO)) {
 
 //            Properties prop = new Properties();
 //            
