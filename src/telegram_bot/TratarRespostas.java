@@ -150,14 +150,27 @@ public class TratarRespostas implements Resposta{
                 	addInteracaoChuch();
                     break;
                 case "OPEN_WEATHER":
-                	addInteracaoWeather();
+                	addInteracaoWeather(propHistorico);
                     break;
                 case "SIM_CRIPTO":
                		addTerceiraInteracaoCripto();
                     break;    
                 case "SIM_OPEN_WEATHER":
-                	setResposta("Digite o nome da cidade desejada?");
-//               		addSegundaInteracaoWeather();
+                	if(ultimaInteracao.equals(OpcoesEnum.OPEN_WEATHER.name())) {
+                		OpenWeatherAPI weather = new OpenWeatherAPI();
+                		//texto seria o nome da cidade
+                		OpenWeather ow = weather.callAPI(propHistorico.getProperty("cidade"));
+
+            			List<Weather> weatherList = ow.getWeather();
+            			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", propHistorico.getProperty("cidade"), weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C\n"
+            					+medeTemperatura(ow.getMain().getTemp()))
+            					+"\nDeseja ver o clima de outra cidade?");
+            			addSegundaInteracaoWeather();
+                	}else {
+                		setResposta("Digite o nome da cidade desejada?");
+                	}
+                case "NAO_OPEN_WEATHER":
+            		setResposta("Digite o nome da cidade desejada?");
                     break;        
                 case "MENU":
                		addReinteracaoInicio();
@@ -170,19 +183,26 @@ public class TratarRespostas implements Resposta{
                 	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao()) && texto.toUpperCase().equals(OpcoesEnum.CHUCK.getOpcao())) {
                     	addSegundaInteracaoChuck();
                     	
-                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.OPEN_WEATHER.getOpcao()) || ultimaInteracao.toUpperCase().equals(OpcoesEnum.SIM_OPEN_WEATHER.getOpcao())) {
+                	}else if(ultimaInteracao.toUpperCase().equals(OpcoesEnum.OPEN_WEATHER.getOpcao()) || 
+                			 ultimaInteracao.toUpperCase().equals(OpcoesEnum.SIM_OPEN_WEATHER.getOpcao()) || 
+                			 ultimaInteracao.toUpperCase().equals(OpcoesEnum.NAO_OPEN_WEATHER.getOpcao())) {
                 		OpenWeatherAPI weather = new OpenWeatherAPI();
                 		//texto seria o nome da cidade
                 		OpenWeather ow = weather.callAPI(texto);
+                		
                 		if(null == ow) {
                 			setResposta("Essa cidade eu não conheço, você digitou o nome corretamente, acredito que não. Vamos tentar novamente? \nEntre com o nome da cidade desejada");
                 			ultimaInteracao = OpcoesEnum.OPEN_WEATHER.getOpcao();
                 		}else {
+                			
+                			propHistorico.setProperty("cidade", texto);
+                			
                 			List<Weather> weatherList = ow.getWeather();
                 			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", texto, weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C\n"
                 					+medeTemperatura(ow.getMain().getTemp()))
                 					+"\nDeseja ver o clima de outra cidade?");
                 			addSegundaInteracaoWeather();
+                			
                 		}
                 	}else {
                 		List<String> despedidas = new ArrayList<String>();
@@ -261,8 +281,26 @@ public class TratarRespostas implements Resposta{
 		
 	}
 
-	private void addInteracaoWeather() {
-		setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar volta ao menu clique aqui nesse /start " );
+	private void addInteracaoWeather(Properties historico) {
+		
+		String cidade = historico.getProperty("cidade");
+		if(null!= cidade && cidade.trim().length() > 0) {
+
+			InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
+	                 new InlineKeyboardButton[]{
+	                         new InlineKeyboardButton(Constantes.SIM).callbackData(OpcoesEnum.SIM_OPEN_WEATHER.getOpcao()),
+	                         new InlineKeyboardButton(Constantes.NAO).callbackData(OpcoesEnum.NAO_OPEN_WEATHER.getOpcao())
+	                 });
+	    	
+			setResposta("A última cidade verifica foi a "+cidade+" deseja consultá-la novamente?" );
+			
+	        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
+
+			
+		}else {
+			setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar volta ao menu clique aqui nesse /start " );
+		}
+		
 	}
 	
 	 private void addSegundaInteracaoWeather(){
