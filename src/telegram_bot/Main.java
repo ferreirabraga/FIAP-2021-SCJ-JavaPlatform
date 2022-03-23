@@ -43,7 +43,7 @@ public class Main {
 		while (true) {
 			// Executa comando no Telegram para obter as mensagens pendentes a partir de um
 			// off-set (limite inicial).
-			updatesResponse = bot.execute(new GetUpdates().limit(300).offset(m));
+			updatesResponse = bot.execute(new GetUpdates().limit(100).offset(m));
 
 			// Lista de mensagens.
 			List<Update> updates = updatesResponse.updates();

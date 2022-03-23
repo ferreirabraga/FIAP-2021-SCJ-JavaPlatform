@@ -32,6 +32,7 @@ public class TratarRespostas implements Resposta{
     private SendMessage sendMessageResposta;
     Historico historico = null;
     boolean isNome = false;
+    String username = null;
 
 	public void setSendMessageResposta(SendMessage sendMessageResposta) {
         this.sendMessageResposta = sendMessageResposta;
@@ -55,6 +56,7 @@ public class TratarRespostas implements Resposta{
 
 
 	public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID, String username){
+		this.username = username;
         this.chatID = chatID;
         this.textoEnviadoPeloUsuario = textoEnviadoPeloUsuario;
        	historico = new Historico(username);
@@ -85,10 +87,10 @@ public class TratarRespostas implements Resposta{
             isComando = false;
         }
         if(isComando){
-            // String opcoes = "";
+            // String opcoes = "";criadoArquivo
             switch (texto) {
                 case "/start":
-                	Historico propHistorico = new Historico(this.chatID);
+                	Historico propHistorico = new Historico(this.username);
                 	if(null != propHistorico.getProperty("nome")) {
         				setResposta(String.format("Olá %s, "+getPeriodo()+" como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
         				addInteracaoInicial();
@@ -102,7 +104,7 @@ public class TratarRespostas implements Resposta{
                     break;
             }
         }else{
-            tratarRespostaTextoAberto(texto);
+            tratarRespostaTextoAberto(texto, username);
         }
 
         ultimaInteracao = texto;
@@ -110,16 +112,16 @@ public class TratarRespostas implements Resposta{
 
     }
 
-    private void tratarRespostaTextoAberto(String texto) {
+    private void tratarRespostaTextoAberto(String texto, String username) {
     	
     	String nomeJaCadastrado ="";
     	
 		Properties propHistorico = null;
 		
 		try {
-			propHistorico = historico.readPropertiesFile(chatID.toString());
+			propHistorico = historico.readPropertiesFile(username);
 			if(null == propHistorico.getProperty("id")) {
-				propHistorico.setProperty("id",chatID.toString());
+				propHistorico.setProperty("id",username.toString());
 			}
 			if(null != propHistorico.getProperty("nome")) {
 				nomeJaCadastrado = propHistorico.getProperty("nome");
@@ -160,9 +162,10 @@ public class TratarRespostas implements Resposta{
                 		OpenWeatherAPI weather = new OpenWeatherAPI();
                 		//texto seria o nome da cidade
                 		OpenWeather ow = weather.callAPI(propHistorico.getProperty("cidade"));
-
+                		Double d = Double.parseDouble(ow.getMain().getTemp());
+                		int temperatura = d.intValue();
             			List<Weather> weatherList = ow.getWeather();
-            			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", propHistorico.getProperty("cidade"), weatherList.get(0).getDescription(), ow.getMain().getTemp()+"°C\n"
+            			setResposta(String.format("O tempo de %s é %s e a temperatura de %s", propHistorico.getProperty("cidade"), weatherList.get(0).getDescription(), temperatura+"°C\n"
             					+medeTemperatura(ow.getMain().getTemp()))
             					+"\nDeseja ver o clima de outra cidade?");
             			addSegundaInteracaoWeather();
@@ -206,14 +209,14 @@ public class TratarRespostas implements Resposta{
                 		}
                 	}else {
                 		List<String> despedidas = new ArrayList<String>();
-                		despedidas.add("tchau");
-                		despedidas.add("até mais");
-                		despedidas.add("até logo");
-                		despedidas.add("obrigado");
+                		despedidas.add("TCHAU");
+                		despedidas.add("ATÉ MAIS");
+                		despedidas.add("ATÉ LOGO");
+                		despedidas.add("OBRIGADO");
                 		
                 		for (String despedida : despedidas) {
-							if(despedida.equals(texto)) {
-								setResposta(String.format("Até mais %s", propHistorico.getProperty("nome")));
+							if(despedida.equals(texto.toUpperCase())) {
+								setResposta(String.format(texto+" %s", propHistorico.getProperty("nome")));
 								break;
 							}
 						}
@@ -242,9 +245,7 @@ public class TratarRespostas implements Resposta{
                 	}
             }
             historico.save(propHistorico);
-//        }else{
-//            primeirasOpcoes(texto);
-//        }
+
     }
 
 	private String medeTemperatura(String temp) {

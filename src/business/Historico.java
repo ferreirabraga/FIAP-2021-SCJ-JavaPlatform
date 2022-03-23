@@ -47,7 +47,7 @@ public class Historico {
 		
 	}
 
-	public Properties readPropertiesFile(String fileName) throws FileNotFoundException,IOException {
+	public Properties readPropertiesFile(String fileName) throws FileNotFoundException  {
 		FileInputStream fis = null;
 		Properties prop = null;
 		try {
@@ -56,10 +56,18 @@ public class Historico {
 		   prop.load(fis);
 		} catch(FileNotFoundException fnfe) {
 			System.err.println("Arquivo não encontrado.");
-		   throw fnfe;
+		   criadoArquivo(fileName);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}  finally {
 			if(null != fis)
-				fis.close();
+				try {
+					fis.close();
+				} catch (IOException e) {
+					System.err.println("Falou o comando fis.close()");
+					e.printStackTrace();
+				}
 		}
 		return prop;
 	 }
