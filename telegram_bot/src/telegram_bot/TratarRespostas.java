@@ -21,6 +21,7 @@ import business.Resposta;
 import enums.OpcoesEnum;
 import modelos.OpenWeather;
 import modelos.Weather;
+import translater.Translater;
 import util.Constantes;
 
 public class TratarRespostas implements Resposta{
@@ -418,7 +419,7 @@ public class TratarRespostas implements Resposta{
     private void addInteracaoChuch(){
 
     	Chuch chuch = new Chuch();
-    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Veja um exemplo:\n"+chuch.callAPI()
+    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Veja um exemplo:\n"+ Translater.translateEnglish2Portuguese(chuch.callAPI())
     	+"\nEu adoro essas mensagens, toda vez que eu respondo à vocês eu dou tanta risada que meus circuitos doem. hahahaha. Muito bom. Desejar rir mais um pouco? ");
 
    	 	InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
@@ -433,7 +434,7 @@ public class TratarRespostas implements Resposta{
 	private void addSegundaInteracaoChuck(){
     	
 		Chuch chuch = new Chuch();
-    	setResposta(chuch.callAPI()+"\nHummm, essa foi mais ou menos. hehehehehe. Mais uma risada?");
+    	setResposta(Translater.translateEnglish2Portuguese(chuch.callAPI())+"\nHummm, essa foi mais ou menos. hehehehehe. Mais uma risada?");
     	
     	 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
                  new InlineKeyboardButton[]{
@@ -446,7 +447,7 @@ public class TratarRespostas implements Resposta{
     }
 	private void addTerceiraInteracaoChuch(){
     	Chuch chuch = new Chuch();
-    	setResposta("Vamos dar mais risadas. Ai vai!\n "+chuch.callAPI());
+    	setResposta("Vamos dar mais risadas. Ai vai!\n "+ Translater.translateEnglish2Portuguese(chuch.callAPI()));
     	
     }
 
