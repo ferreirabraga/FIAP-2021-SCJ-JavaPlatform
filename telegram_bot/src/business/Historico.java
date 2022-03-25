@@ -14,12 +14,12 @@ import okhttp3.internal.Util;
 
 public class Historico {
 	
-	Properties prop = new Properties();
+	Properties properties = new Properties();
 	private final String  EXTENSAO = ".properties";
 	
 	public Historico(Object username) {
 		try{
-			prop = readPropertiesFile(username.toString());
+			properties = readPropertiesFile(username.toString());
 		}catch (FileNotFoundException e) {
 			criadoArquivo(username.toString());
 		}
@@ -31,12 +31,11 @@ public class Historico {
 	}
 	
 	private void criadoArquivo(String nomeArquivo) {
-		
-		String outputPath = SOEnum.valueOf(util.Util.getSO()).getSOPath()+nomeArquivo+EXTENSAO;
+		String outputPath = SOEnum.valueOf(util.Util.getSO()).getSOPath() + nomeArquivo + EXTENSAO;
 	    FileOutputStream outputStrem;
 		try {
 			outputStrem = new FileOutputStream(outputPath);
-			prop.store(outputStrem, "Esse arquivo é referente a conversa "+nomeArquivo);
+			properties.store(outputStrem, "Esse arquivo é referente a conversa "+nomeArquivo);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			System.err.println("Não foi possível criar o histórico da conversa "+nomeArquivo);
@@ -49,10 +48,9 @@ public class Historico {
 
 	public Properties readPropertiesFile(String fileName) throws FileNotFoundException  {
 		FileInputStream fis = null;
-		Properties prop = null;
+		Properties prop = new Properties();
 		try {
 		   fis = new FileInputStream(SOEnum.valueOf(util.Util.getSO()).getSOPath()+fileName+EXTENSAO);
-		   prop = new Properties();
 		   prop.load(fis);
 		} catch(FileNotFoundException fnfe) {
 			System.err.println("Arquivo não encontrado.");
@@ -75,11 +73,11 @@ public class Historico {
 	 
 
 	public void setHistorico(String textoEnviadoPeloUsuario) {
-		this.prop.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
+		this.properties.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
 	}
 	
 	public String getProperty(String propertiesName) {
-		return prop.getProperty(propertiesName);
+		return this.properties.getProperty(propertiesName);
 	}
 	
 //	public void save(Object idChat) {
@@ -99,6 +97,7 @@ public class Historico {
 //            System.out.println(prop);
 
         } catch (IOException io) {
+			System.out.println("Erro Properties " + io.getLocalizedMessage());
             io.printStackTrace();
         }
 	}

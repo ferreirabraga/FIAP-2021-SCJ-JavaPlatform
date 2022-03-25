@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.pengrad.telegrambot.model.request.InlineKeyboardButton;
@@ -56,10 +57,12 @@ public class TratarRespostas implements Resposta{
 
 
 	public TratarRespostas(String textoEnviadoPeloUsuario, Object chatID, String username){
-		this.username = username;
+		final String userNameTratado = Objects.isNull(username) ? "NotIdentified" : username;
+
+		this.username = userNameTratado;
         this.chatID = chatID;
         this.textoEnviadoPeloUsuario = textoEnviadoPeloUsuario;
-       	historico = new Historico(username);
+       	historico = new Historico(userNameTratado);
        	historico.setHistorico(textoEnviadoPeloUsuario);
        	getPeriodo();
     }

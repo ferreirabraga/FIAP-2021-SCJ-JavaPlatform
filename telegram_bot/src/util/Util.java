@@ -23,11 +23,18 @@ public class Util {
 			Set<Object> keySet = prop.keySet();
 			for (Object obj : keySet) {
 				if(obj.toString().equals("os.name")) {
-					System.out.println("path:"+System.getProperty(obj.toString()));
-					if(System.getProperty(obj.toString()).toUpperCase().contains("MAC")) {
+					final String osName = System.getProperty(obj.toString());
+					System.out.println("OS: "+ osName);
+
+					if(osName.toUpperCase().contains("MAC")) {
 						return "MAC";
 					}
-					return System.getProperty(obj.toString()).toUpperCase();
+
+					if(osName.toUpperCase().contains("WINDOWS")) {
+						return "WINDOWS";
+					}
+
+					return osName.toUpperCase();
 				}
 			}
 			return null;
