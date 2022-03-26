@@ -82,31 +82,32 @@ public class TratarRespostas implements Resposta{
     private void trataTextoRecebido(String texto) {
 
         boolean isComando = true;
-        
-        
+        String confereExpressao = ExpressaoRegular.validaExpressao(texto);
         if(texto.indexOf("/") == -1){
             isComando = false;
         }
         if(isComando){
+        	
             // String opcoes = "";criadoArquivo
-            switch (texto) {
-                case "/start":
-                	Historico propHistorico = new Historico(this.username);
-                	if(null != propHistorico.getProperty("nome")) {
-        				setResposta(String.format("OlÃ¡ %s, "+getPeriodo()+" como vai, tudo bem? Por onde comeÃ§aremos por hoje? Selecione abaixo a opÃ§Ã£o:", propHistorico.getProperty("nome")));
-        				addInteracaoInicial();
-        			}else {
-        				setResposta("OlÃ¡ "+getPeriodo()+" como vai, tudo bem? Como se chama?");
-        			}
-                    
-                    break;
-            
-                default:
-                    break;
-            }
-        }else{
-            tratarRespostaTextoAberto(texto, username);
+        	switch (texto) {
+            case "/start":
+            	Historico propHistorico = new Historico(this.username);
+            	if(null != propHistorico.getProperty("nome")) {
+    				setResposta(String.format("Olá %s, "+getPeriodo()+" como vai, tudo bem? Por onde começaremos por hoje? Selecione abaixo a opção:", propHistorico.getProperty("nome")));
+    				addInteracaoInicial();
+    			}else {
+    				setResposta("Olá "+getPeriodo()+" como vai, tudo bem? Como se chama?");
+    			}
+                
+                break;
+        
+            default:
+            	setResposta(String.format("A /opção informada foi inválida, favor digitar /start"));
+                break;
         }
+    }else{
+        tratarRespostaTextoAberto(texto, username);
+    }
 
         ultimaInteracao = texto;
 
@@ -116,8 +117,9 @@ public class TratarRespostas implements Resposta{
     private void tratarRespostaTextoAberto(String texto, String username) {
     	
     	String nomeJaCadastrado ="";
-    	
+    	String confereExpressao = ExpressaoRegular.validaExpressao(texto);
 		Properties propHistorico = null;
+		
 		
 		try {
 			propHistorico = historico.readPropertiesFile(username);
@@ -139,11 +141,11 @@ public class TratarRespostas implements Resposta{
 //    	if(ultimaInteracao != null){
             switch (texto) {
                 case "/start":
-                    setResposta("OlÃ¡ "+nomeJaCadastrado+", temos muitas opÃ§Ã£o de serviÃ§os. Escolha um:");
+                	setResposta("Olá "+nomeJaCadastrado+", temos muitas opção de serviços. Escolha um:");
                     addInteracaoInicial();
                     break;
                 case "nomics":
-                    setResposta(String.format("OlÃ¡ vocÃª escolheu a opÃ§Ã£o %s, temos muitas opÃ§Ã£o de serviÃ§os. Escolha um:", texto));
+                    setResposta(String.format("Olá você escolheu a opção %s, temos muitas opção de serviços. Escolha um:", texto));
                     addInteracaoInicial();
                     break;
                 case "CRIPTO":
@@ -195,7 +197,7 @@ public class TratarRespostas implements Resposta{
                 		OpenWeather ow = weather.callAPI(texto);
                 		
                 		if(null == ow) {
-                			setResposta("Essa cidade eu nÃ£o conheÃ§o, vocÃª digitou o nome corretamente, acredito que nÃ£o. Vamos tentar novamente? \nEntre com o nome da cidade desejada");
+                			setResposta("Essa cidade eu não conheço, você digitou o nome corretamente, acredito que não. Vamos tentar novamente? \nEntre com o nome da cidade desejada");
                 			ultimaInteracao = OpcoesEnum.OPEN_WEATHER.getOpcao();
                 		}else {
                 			
@@ -209,30 +211,53 @@ public class TratarRespostas implements Resposta{
                 			
                 		}
                 	}else {
-                		List<String> despedidas = new ArrayList<String>();
-                		despedidas.add("TCHAU");
-                		despedidas.add("ATÃ‰ MAIS");
-                		despedidas.add("ATÃ‰ LOGO");
-                		despedidas.add("OBRIGADO");
+                		//List<String> despedidas = new ArrayList<String>();
+                		//despedidas.add("TCHAU");
+                		//despedidas.add("ATÉ MAIS");
+                		//despedidas.add("ATÉ LOGO");
+                		//despedidas.add("OBRIGADO");
                 		
-                		for (String despedida : despedidas) {
-							if(despedida.equals(texto.toUpperCase())) {
-								setResposta(String.format(texto+" %s", propHistorico.getProperty("nome")));
-								break;
+                		//for (String despedida : despedidas) {
+                		//if(despedida.equals(texto.toUpperCase())) {
+						//		setResposta(String.format(texto+" %s", propHistorico.getProperty("nome")));
+						//		break;
+                		if ( confereExpressao == "Adeus" ) {
+							setResposta(String.format(texto+"! %s", propHistorico.getProperty("nome")));
+							break;
+                		
+                		
 							}
 						}
                 		if(getResposta().trim().length() == 0) {
 							try {
-								if(nomeJaCadastrado.trim().length() > 0) {
-									setResposta(String.format("OlÃ¡ %s,"+getPeriodo()+" como vai tudo bem? Esolha uma das opÃ§Ãµes: ",nomeJaCadastrado));
-									addInteracaoInicial();
+								if ( (nomeJaCadastrado.trim().length() > 0) && ( (propHistorico.getProperty("nome") == null)  )) {
+									switch (confereExpressao) {
+									case "Bom dia":
+										setResposta("Desejo a você "+getPeriodo()+". Por favor, escolha uma das opções: " + nomeJaCadastrado);
+										addInteracaoInicial();
+										break;
+									case "Ola":
+										setResposta("Olá.  Por favor, escolha uma das opções: " + nomeJaCadastrado);
+										addInteracaoInicial();
+										break;
+									case "Adeus":
+										setResposta("Mas já, " + nomeJaCadastrado +  " ? Fica, tem café. Escolha uma das opções:  ");
+										addInteracaoInicial();
+										break;
+									default:
+										setResposta("Bem vindo, " + nomeJaCadastrado + ". Não entendi o que você quis dizer. Para iniciarmos nossa conversa me enviando a opção /start ou seu nome. ");
+										addInteracaoInicial();
+										break;
+									
+									}
+									
 								} else {
 									;
 									IBGE ibge = new IBGE();
 									String isNomeComum = ibge.isNomeComum(texto);
 									if(!isNomeComum.contains("[]") && !isNomeComum.equals("")) {
 										propHistorico.setProperty("nome", texto);
-										setResposta(String.format("OlÃ¡ %s, "+getPeriodo()+" como vai tudo bem? Escolha uma das opÃ§Ãµes abaixo:", texto));
+										setResposta(String.format("Olá %s, "+getPeriodo()+" como vai tudo bem? Escolha uma das opções abaixo:", texto));
 										addInteracaoInicial();
 									}
 								}
@@ -240,8 +265,28 @@ public class TratarRespostas implements Resposta{
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
-							if(getResposta().length() == 0)
-								setResposta("OlÃ¡, "+getPeriodo()+" como vai tudo bem? Para iniciarmos nossa conversa me enviando a opÃ§Ã£o  /start ou seu nome. ");
+							if(getResposta().length() == 0) {
+								
+					
+								switch (confereExpressao) {
+									case "Bom dia":
+										setResposta(getPeriodo()+" como vai tudo bem? Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+										break;
+									case "Ola":
+										setResposta("Olá. Para iniciarmos nossa conversa me enviando a opção /start ou seu nome. ");
+										break;
+									case "Adeus":
+										setResposta("Mas já? Fica, tem café. Mas para tomar o café, tem que digitar a opção /start ou seu nome. ");
+										break;
+									case "Start":
+										setResposta("Você quase acertou. É só digitar /start para começarmos");
+										break;
+									default:
+										setResposta("Bem vindo. Para iniciarmos nossa conversa me enviando a opção  /start ou seu nome. ");
+										
+										break;
+							}
+								
                 		}
                 	}
             }
@@ -253,17 +298,17 @@ public class TratarRespostas implements Resposta{
 		Double d = Double.parseDouble(temp);
 		int temperatura = d.intValue();
 		if(temperatura < 10) {
-			return "Eita friaaaca. SÃ³ de processar meu componentes jÃ¡ estÃ£o congelando";
+			return "Eita friaaaca. Só de processar meu componentes já estão congelando";
 		}else if(temperatura >= 10 && temperatura < 20 ) {
-			return "Ã‰ aconselhÃ¡vel um casaco, o vento certamente estÃ¡ gelaaaado.";
+			return "É aconselhável um casaco, o vento certamente está gelaaaado.";
 		}else if(temperatura >= 20 && temperatura < 25 ) {
 			return "Huuum, tempinho para apreciar um bom vinho";
 		}else if(temperatura >= 25 && temperatura < 30 ) {
 			return "Oportunidade de fazer um exercÃ­cio ao ar livre.";
 		}else if(temperatura >= 30 && temperatura < 35 ) {
-			return "Opa, hoje vai dar praia,mas se nÃ£o tiver praia rola uma Ã¡gua de coco no parque.";
+			return "Opa, hoje vai dar praia,mas se não tiver praia rola uma água de coco no parque.";
 		}else {
-			return "Muito cuidado com o sol e nÃ£o esqueÃ§a de se hidratar";
+			return "Muito cuidado com o sol e não esqueça de se hidratar";
 		}
 		
 	}
@@ -272,13 +317,13 @@ public class TratarRespostas implements Resposta{
 		
 		 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
 	                new InlineKeyboardButton[]{
-	                        // new InlineKeyboardButton("OpÃ§Ã£o 1").url("www.google.com"),
+	                        // new InlineKeyboardButton("Opção 1").url("www.google.com"),
 	                        new InlineKeyboardButton(Constantes.CRIPTO).callbackData(OpcoesEnum.CRIPTO.getOpcao()),
 	                        new InlineKeyboardButton(Constantes.CHUCK).callbackData(OpcoesEnum.CHUCK.getOpcao()),
 	                        new InlineKeyboardButton(Constantes.OPEN_WEATHER).callbackData(OpcoesEnum.OPEN_WEATHER.getOpcao())
-	                        // new InlineKeyboardButton("OpÃ§Ã£o 3").switchInlineQuery("switch_inline_query")
+	                        // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
 	                });
-			sendMessageResposta = montaResposta(this.chatID, "Ok, vamos lÃ¡, deseja selecionar qual opÃ§Ã£o agora?", inlineKeyboardMarkup);
+			sendMessageResposta = montaResposta(this.chatID, "Ok, vamos lá, deseja selecionar qual opção agora?", inlineKeyboardMarkup);
 		
 		
 	}
@@ -294,13 +339,13 @@ public class TratarRespostas implements Resposta{
 	                         new InlineKeyboardButton(Constantes.NAO).callbackData(OpcoesEnum.NAO_OPEN_WEATHER.getOpcao())
 	                 });
 	    	
-			setResposta("A Ãºltima cidade verifica foi a "+cidade+" deseja consultÃ¡-la novamente?" );
+			setResposta("A última cidade verifica foi a "+cidade+" deseja consultá-la novamente?" );
 			
 	        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
 
 			
 		}else {
-			setResposta("Entre com o nome da sua cidade para receber informaÃ§Ãµes do clima. \nSe desejar volta ao menu clique aqui nesse /start " );
+			setResposta("Entre com o nome da sua cidade para receber informações do clima. \nSe desejar volta ao menu clique aqui nesse /start " );
 		}
 		
 	}
@@ -330,11 +375,11 @@ public class TratarRespostas implements Resposta{
 //	private void primeirasOpcoes(String texto) {
 //		InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
 //		    new InlineKeyboardButton[]{
-//		            // new InlineKeyboardButton("OpÃ§Ã£o 1").url("www.google.com"),
+//		            // new InlineKeyboardButton("Opção 1").url("www.google.com"),
 //		            new InlineKeyboardButton("chuck Norris").callbackData("chucknorris"),
 //		            new InlineKeyboardButton("Conselhos").callbackData("adviceslip"),
-//		            new InlineKeyboardButton("OpÃ§Ã£o 3").callbackData("resp3")
-//		            // new InlineKeyboardButton("OpÃ§Ã£o 3").switchInlineQuery("switch_inline_query")
+//		            new InlineKeyboardButton("Opção 3").callbackData("resp3")
+//		            // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
 //		    });
 //		sendMessageResposta = montaResposta(this.chatID, texto, inlineKeyboardMarkup);
 //	}
@@ -356,21 +401,21 @@ public class TratarRespostas implements Resposta{
     private void addInteracaoInicial(){
         InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
                 new InlineKeyboardButton[]{
-                        // new InlineKeyboardButton("OpÃ§Ã£o 1").url("www.google.com"),
+                        // new InlineKeyboardButton("Opção 1").url("www.google.com"),
                         new InlineKeyboardButton(Constantes.CRIPTO).callbackData(OpcoesEnum.CRIPTO.getOpcao()),
                         new InlineKeyboardButton(Constantes.CHUCK).callbackData(OpcoesEnum.CHUCK.getOpcao()),
                         new InlineKeyboardButton(Constantes.OPEN_WEATHER).callbackData(OpcoesEnum.OPEN_WEATHER.getOpcao())
-                        // new InlineKeyboardButton("OpÃ§Ã£o 3").switchInlineQuery("switch_inline_query")
+                        // new InlineKeyboardButton("Opção 3").switchInlineQuery("switch_inline_query")
                 });
        setSendMessageResposta(montaResposta(this.chatID, getResposta(), inlineKeyboardMarkup));
     }
     
     /**
-     * Utilizado para primeira interaÃ§Ã£o com o usuario apÃ³s clicar na opÃ§Ã£o CRIPTO
+     * Utilizado para primeira interação com o usuario após clicar na opção CRIPTO
      */
     private void addInteracaoCripto(){
     	String preco = buscaPrincipaisCripto();
-    	setResposta("Digite a sigla da moeda que deseja ver o preÃ§o, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue Ãºltima cotaÃ§Ã£o do BTC/BRL: "+preco+"\nSe desejar volta sair digite /start " );
+    	setResposta("Digite a sigla da moeda que deseja ver o preço, Ex: BTC para Bitcoin, ETH para Etherium etc. \nSegue última cotação do BTC/BRL: "+preco+"\nSe desejar volta sair digite /start " );
     }
     
     private void addSegundaInteracaoCripto(String texto){
@@ -382,7 +427,7 @@ public class TratarRespostas implements Resposta{
         };
         
     	Cripto cripto = new Cripto();
-    	setResposta(String.format("O cotaÃ§Ã£o da cripto %s hoje Ã© de %s .\nSe desejar outra cotaÃ§Ã£o clique em SIM se quiser sair clique na opÃ§Ã£o MENU",texto, cripto.getPrecoAgora(moedas)));
+    	setResposta(String.format("O cotação da cripto %s hoje Ã© de %s .\nSe desejar outra cotação clique em SIM se quiser sair clique na opção MENU",texto, cripto.getPrecoAgora(moedas)));
     	
     	 InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
                  new InlineKeyboardButton[]{
@@ -399,7 +444,7 @@ public class TratarRespostas implements Resposta{
     }
     
     /**
-     * Trata nome composto para verificaÃ§Ã£o no IBGE
+     * Trata nome composto para verificação no IBGE
      * @param nome
      * @return
      */
@@ -414,13 +459,13 @@ public class TratarRespostas implements Resposta{
 
     }
     /**
-     * Utilizado para primeira interaÃ§Ã£o com o usuario apÃ³s clicar na opÃ§Ã£o Chuck Norris
+     * Utilizado para primeira interação com o usuario após clicar na opção Chuck Norris
      */
     private void addInteracaoChuch(){
 
     	Chuch chuch = new Chuch();
-    	setResposta("Nessa opÃ§Ã£o vocÃª saberÃ¡ fatos sobre o Chuck Norris. Veja um exemplo:\n"+ Translater.translateEnglish2Portuguese(chuch.callAPI())
-    	+"\nEu adoro essas mensagens, toda vez que eu respondo Ã  vocÃªs eu dou tanta risada que meus circuitos doem. hahahaha. Muito bom. Desejar rir mais um pouco? ");
+    	setResposta("Nessa opção você saberá fatos sobre o Chuck Norris. Veja um exemplo:\n"+ Translater.translateEnglish2Portuguese(chuch.callAPI())
+    	+"\nEu adoro essas mensagens, toda vez que eu respondo Ã  vocês eu dou tanta risada que meus circuitos doem. hahahaha. Muito bom. Desejar rir mais um pouco? ");
 
    	 	InlineKeyboardMarkup inlineKeyboardMarkup =  new InlineKeyboardMarkup(
         new InlineKeyboardButton[]{
