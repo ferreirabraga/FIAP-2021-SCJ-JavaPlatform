@@ -10,82 +10,87 @@ import java.time.LocalDate;
 import java.util.Properties;
 
 import enums.SOEnum;
+import modelos.Sys;
 import okhttp3.internal.Util;
 
 public class Historico {
-	
-	Properties properties = new Properties();
-	private final String  EXTENSAO = ".properties";
-	
-	public Historico(Object username) {
-		try{
-			properties = readPropertiesFile(username.toString());
-		}catch (FileNotFoundException e) {
-			criadoArquivo(username.toString());
-		}
-		catch(IOException io){
-			System.err.println("Algo deu errado.");
-			System.err.println(io.getMessage());
-			
-		}
-	}
-	
-	private void criadoArquivo(String nomeArquivo) {
-		String outputPath = SOEnum.valueOf(util.Util.getSO()).getSOPath() + nomeArquivo + EXTENSAO;
-	    FileOutputStream outputStrem;
-		try {
-			outputStrem = new FileOutputStream(outputPath);
-			properties.store(outputStrem, "Esse arquivo é referente a conversa "+nomeArquivo);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Não foi possível criar o histórico da conversa "+nomeArquivo);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			System.err.println("Não foi possível criar o histórico da conversa "+nomeArquivo);
-		}
-		
-	}
 
-	public Properties readPropertiesFile(String fileName) throws FileNotFoundException  {
-		FileInputStream fis = null;
-		Properties prop = new Properties();
-		try {
-		   fis = new FileInputStream(SOEnum.valueOf(util.Util.getSO()).getSOPath()+fileName+EXTENSAO);
-		   prop.load(fis);
-		} catch(FileNotFoundException fnfe) {
-			System.err.println("Arquivo não encontrado.");
-		   criadoArquivo(fileName);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}  finally {
-			if(null != fis)
-				try {
-					fis.close();
-				} catch (IOException e) {
-					System.err.println("Falou o comando fis.close()");
-					e.printStackTrace();
-				}
-		}
-		return prop;
-	 }
-	
-	 
+    Properties properties = new Properties();
+    private final String EXTENSAO = ".properties";
 
-	public void setHistorico(String textoEnviadoPeloUsuario) {
-		this.properties.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
-	}
-	
-	public String getProperty(String propertiesName) {
-		return this.properties.getProperty(propertiesName);
-	}
-	
-//	public void save(Object idChat) {
-	public void save(Properties prop) {
-		try (OutputStream output = new FileOutputStream( SOEnum.valueOf(util.Util.getSO()).getSOPath()+prop.getProperty("id")+EXTENSAO)) {
+    public Historico(Object username) {
+        try {
+            if (username == null) {
+                criadoArquivo("Jane Doe");
+            } else {
+                properties = readPropertiesFile(username.toString());
+            }
+
+        } catch (FileNotFoundException e) {
+            criadoArquivo(username.toString());
+        } catch (IOException io) {
+            System.err.println("Algo deu errado.");
+            System.err.println(io.getMessage());
+
+        }
+    }
+
+    private void criadoArquivo(String nomeArquivo) {
+        String outputPath = SOEnum.valueOf(util.Util.getSO()).getSOPath() + nomeArquivo + EXTENSAO;
+        FileOutputStream outputStrem;
+        try {
+            outputStrem = new FileOutputStream(outputPath);
+            properties.store(outputStrem, "Esse arquivo é referente a conversa " + nomeArquivo);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            System.err.println("Não foi possível criar o histórico da conversa " + nomeArquivo);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            System.err.println("Não foi possível criar o histórico da conversa " + nomeArquivo);
+        }
+
+    }
+
+    public Properties readPropertiesFile(String fileName) throws FileNotFoundException {
+        FileInputStream fis = null;
+        Properties prop = new Properties();
+        try {
+            System.out.println();
+            fis = new FileInputStream(SOEnum.valueOf(util.Util.getSO()).getSOPath() + fileName + EXTENSAO);
+            prop.load(fis);
+        } catch (FileNotFoundException fnfe) {
+            System.err.println("Arquivo não encontrado.");
+            criadoArquivo(fileName);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } finally {
+            if (null != fis)
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    System.err.println("Falou o comando fis.close()");
+                    e.printStackTrace();
+                }
+        }
+        return prop;
+    }
+
+
+    public void setHistorico(String textoEnviadoPeloUsuario) {
+        this.properties.put(LocalDate.now().toString(), textoEnviadoPeloUsuario);
+    }
+
+    public String getProperty(String propertiesName) {
+        return this.properties.getProperty(propertiesName);
+    }
+
+    //	public void save(Object idChat) {
+    public void save(Properties prop) {
+        try (OutputStream output = new FileOutputStream(SOEnum.valueOf(util.Util.getSO()).getSOPath() + prop.getProperty("id") + EXTENSAO)) {
 
 //            Properties prop = new Properties();
-//            
+//
 //            // set the properties value
 //            prop.setProperty("db.url", "localhost");
 //            prop.setProperty("db.user", "mkyong");
@@ -97,10 +102,10 @@ public class Historico {
 //            System.out.println(prop);
 
         } catch (IOException io) {
-			System.out.println("Erro Properties " + io.getLocalizedMessage());
+            System.out.println("Erro Properties " + io.getLocalizedMessage());
             io.printStackTrace();
         }
-	}
-	 
-	
+    }
+
+
 }
