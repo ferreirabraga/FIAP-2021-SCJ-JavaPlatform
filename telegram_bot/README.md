@@ -41,6 +41,14 @@ O arquivo deve estar em uma pasta "Temp" em seu sistema operacional da seguinte 
     LINUX ("/tmp/"),
     MAC ("/tmp/");
 
+O arquivo deve ter o seguinte conteúdo
+
+````
+TELEGRAM: <Inserir Aqui o Token Telegram>
+NOMICS_API:f021d406050ca17aa9f4e5d8af83cb640cce4b9f
+OPEN_WEATHER:53bf819c4807d9cae6bfa21ddfd55c16
+RAPID:c50720d79emsh64c873d007d6205p1af05cjsnc22851e564cb
+````
 ## Funções programadas do Bot
 
 ### Cripto
