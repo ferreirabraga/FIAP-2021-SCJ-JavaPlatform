@@ -3,6 +3,7 @@ package api;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.TimeUnit;
 
 import enums.MethodEnum;
@@ -56,8 +57,11 @@ public class API {
 //      in.close();
 //      //retorna tudo com String
 //      return inputLineSB.toString();
-  	
+		System.setProperty("http.agent", "Mozilla");
   	URL url1 = new URL(url);
+		url1.openConnection().addRequestProperty("User-Agent", "Mozilla");
+		url1.openConnection().setReadTimeout(5000);
+		url1.openConnection().setConnectTimeout(5000);
       try (BufferedReader br = new BufferedReader(new InputStreamReader(url1.openStream()))) {
 
           String line;
