@@ -117,7 +117,6 @@ public class Cripto extends API{
 	/**
 	 * Monta a URL que vai acessar a API externa
 	 * @param token2 - token de acesso
-	 * @param moedas - BTC ou varias como BTC,ETH,ADA
 	 * @return
 	 */
 	private String montaURL(String token2) {

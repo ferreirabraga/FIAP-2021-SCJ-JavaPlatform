@@ -16,15 +16,16 @@ public class Chuch extends API{
 	public final String URL = "https://api.chucknorris.io/jokes/random";
 	
 	/**
+	 * Metodo usado para recuperar alguma frase aleatoria sobre o Chuck Norris
 	 * API : https://api.chucknorris.io/
+	 * @return textoChuch
 	 * {
 		"icon_url" : "https://assets.chucknorris.host/img/avatar/chuck-norris.png",
 		"id" : "S99dqRfRTGK4RuvQMH4Wwg",
 		"url" : "",
 		"value" : "Wanna know what Bill Murray whispered into Scarlett Johanson's ear at the end of Lost In Translation? "I don't love you, I love Chuck Norris.""
-		}
+	 } *
 	 */
-	
 	public String callAPI() {
 		
 		try {
